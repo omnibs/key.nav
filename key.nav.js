@@ -5,6 +5,7 @@ var script = document.createElement("script");
 script.type = "text/javascript";
 script.appendChild(document.createTextNode(injectedJS));
 document.documentElement.appendChild(script);
+var elements = []; // array of elements for each valid keyCode
 
 (function ($) {
 	var elements = []; // array of elements for each valid keyCode
@@ -57,6 +58,9 @@ document.documentElement.appendChild(script);
 				console.log('['+letter+'='+keyCode+'] has no element assigned');
 				break;
 			}
+			
+			if (letter == 'c' || letter == 'h')
+				console.log(elements[i]);
 
 			addTooltip($(elements[i].elm), letter);
 		}
@@ -70,9 +74,11 @@ document.documentElement.appendChild(script);
 							// to testando ver se _handlerTypes do tests.html funciona
 							// se funcionar da pra combinar ele com .onclick != undefined ou algo assim
 							var evts = this.getAttribute('_handlerTypes');
-							return (this.onclick != undefined || (evts != undefined && evts.indexOf('click') >= 0)) && this != window;
+							return (this.onclick != undefined || (evts != undefined && evts.indexOf('click') >= 0)) && this != window && $(this).css('display') != 'none';
 						});
-		$('input[type="submit"],input[type="file"],a[href]').each(function(idx,val){clickable.push(val);});
+		$('input[type="submit"],input[type="file"],a[href]').each(function(idx,val) {
+			if ($(val).css('display') != 'none') clickable.push(val);
+		});
 		return unique(clickable);
 	}
 	
@@ -89,8 +95,11 @@ document.documentElement.appendChild(script);
 							return (this.onfocus != undefined || (evts != undefined && evts.indexOf('focus') >= 0) 
 								|| this.onmouseover != undefined || (evts != undefined && evts.indexOf('onmouseover') >= 0)) 
 								&& this != window;
+								//&& $(this).css('display') != 'none';
 						});
-		$('select,input[type="text"]').each(function(idx,val){focusable.push(val);});
+		$('select,input[type="text"]').each(function(idx,val) {
+			if ($(val).css('display') != 'none') focusable.push(val);
+		});
 		return unique(focusable);
 	}
 	
