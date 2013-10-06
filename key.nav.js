@@ -7,7 +7,7 @@ script.appendChild(document.createTextNode(injectedJS));
 document.documentElement.appendChild(script);
 
 (function ($) {
-	var elements = [];
+	var elements = []; // array of elements for each valid keyCode
 	var tooltips = [];
 	var letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9","-","=","[","]","\\","/","."];
 	// necessary because fucking keydown.keyCode + String.fromCharCode are totally unrealiable
@@ -32,27 +32,28 @@ document.documentElement.appendChild(script);
 		
 		var i = 0;
 		var offsetSkip = offset;
-		$.each(getClickable().filter(function(idx,val){return isScrolledIntoView(val);}), function(idx, val){
-			if (i == letters.length) return;
+		$.each(getClickable().filter(function(idx,val){return isScrolledIntoView(this);}), function(idx, val){
+			if (i == keyCodes.length) return;
 			if (offsetSkip-- > 0) return; // pulamos offset vezes
-			elements[letters[i++]] = {elm: val, type: 'click'};
+			elements[keyCodes[i++]] = {elm: val, type: 'click'};
 		});
 
-		$.each(getFocusable().filter(function(idx,val){return isScrolledIntoView(val);}), function(idx, val){
-			if (i == letters.length) return;
+		$.each(getFocusable().filter(function(idx,val){return isScrolledIntoView(this);}), function(idx, val){
+			if (i == keyCodes.length) return;
 			if (offsetSkip-- > 0) return; // pulamos offset vezes
-			elements[letters[i++]] = {elm: val, type: 'focus'};
+			elements[keyCodes[i++]] = {elm: val, type: 'focus'};
 		});
 
 		elements = unique(elements);
 		
 		for (i = 0; i<letters.length;i++){
-			var val = letters[i];
-			if (elements[val] == undefined){
-				console.log(val);
+			var letter = letters[i];
+			var keyCode = keyCodes[i];
+			if (elements[keyCode] == undefined){
+				console.log('['+letter+'='+keyCode+'] has no element assigned');
 				break;
 			}
-			addTooltip($(elements[val].elm), val);
+			addTooltip($(elements[keyCode].elm), keyCode);
 		}
 	}
 
@@ -62,7 +63,7 @@ document.documentElement.appendChild(script);
 							// to testando ver se _handlerTypes do tests.html funciona
 							// se funcionar da pra combinar ele com .onclick != undefined ou algo assim
 							var evts = this.getAttribute('_handlerTypes');
-							return this.onclick != undefined || (evts != undefined && evts.indexOf('click') >= 0);
+							return (this.onclick != undefined || (evts != undefined && evts.indexOf('click') >= 0)) && this != window;
 						});
 		$('input[type="submit"],input[type="file"],a[href]').each(function(idx,val){clickable.push(val);});
 		return unique(clickable);
@@ -70,22 +71,25 @@ document.documentElement.appendChild(script);
 	
 	function unique(array){
 		array = array.toArray != undefined ? array.toArray() : array;
-		return array.filter(function (idx) {
-			return array.lastIndexOf(array[idx]) === idx;
+		return array.filter(function (val, idx) {
+			return array.lastIndexOf(val) === idx;
 		});
 	}
 
-	function getFocusable(){
+	function getFocusable() {
 		var focusable = $('*').filter(function(idx, val){
 							var evts = this.getAttribute('_handlerTypes');
-							return this.onfocus != undefined || (evts != undefined && evts.indexOf('focus') >= 0) 
-								|| this.onmouseover != undefined || (evts != undefined && evts.indexOf('onmouseover') >= 0);
+							return (this.onfocus != undefined || (evts != undefined && evts.indexOf('focus') >= 0) 
+								|| this.onmouseover != undefined || (evts != undefined && evts.indexOf('onmouseover') >= 0)) 
+								&& this != window;
 						});
 		$('select,input[type="text"]').each(function(idx,val){focusable.push(val);});
 		return focusable;
 	}
 	
 	function isScrolledIntoView(elem) {
+		if (elem == window) return false;
+
 		var docViewTop = $(window).scrollTop();
 		var docViewBottom = docViewTop + $(window).height();
 		
@@ -163,17 +167,14 @@ document.documentElement.appendChild(script);
 				
 				if (offset < 0)
 					offset = 0;
-				// if (offset+letters.length > elements.length)
-					// offset = elements.length-letters.length;
-				
+
 				console.log('offsetting: ' + offset);
 				removeTooltips();
 				addTooltips();
 			}
 			
 			// detects hotkey pressed
-			var letter = letters[keyCodes.indexOf(e.keyCode)]; // necessary because fucking keydown.keyCode + String.fromCharCode are totally unrealiable
-			var elementFromLetter = elements[letter];
+			var elementFromLetter = elements[e.keyCode];
 			if (!keymap[e.keyCode] && elementFromLetter != undefined) {
 				var elm = elementFromLetter;
 				if (elm.type == 'click') {
