@@ -29,32 +29,39 @@ document.documentElement.appendChild(script);
 		tooltips.push(tooltip);
 	}
 	function addTooltips() {
-		
+		elements = [];
 		var i = 0;
 		var offsetSkip = offset;
-		$.each(getClickable().filter(function(idx,val){return isScrolledIntoView(this);}), function(idx, val){
-			if (i == keyCodes.length) return;
+		$.each(getClickable().filter(function(val){return isScrolledIntoView(val);}), function(idx, val){
 			if (offsetSkip-- > 0) return; // pulamos offset vezes
-			elements[keyCodes[i++]] = {elm: val, type: 'click'};
+			if (i == keyCodes.length) return; // só adicionamos a quantidade de elementos igual à quantidade de teclas de atalho
+			elements.push({elm: val, type: 'click'});
+			i++;
 		});
 
-		$.each(getFocusable().filter(function(idx,val){return isScrolledIntoView(this);}), function(idx, val){
-			if (i == keyCodes.length) return;
+		$.each(getFocusable().filter(function(val){return isScrolledIntoView(val);}), function(idx, val){
 			if (offsetSkip-- > 0) return; // pulamos offset vezes
-			elements[keyCodes[i++]] = {elm: val, type: 'focus'};
+			if (i == keyCodes.length) return; // só adicionamos a quantidade de elementos igual à quantidade de teclas de atalho
+			elements.push({elm: val, type: 'focus'});
+			i++;
 		});
 
 		elements = unique(elements);
 		
-		for (i = 0; i<letters.length;i++){
+		var temp = [];
+		for (i-=1;i>=0;i--){
 			var letter = letters[i];
 			var keyCode = keyCodes[i];
-			if (elements[keyCode] == undefined){
+			temp[keyCode] = elements[i];
+			if (elements[i] == undefined){
 				console.log('['+letter+'='+keyCode+'] has no element assigned');
 				break;
 			}
-			addTooltip($(elements[keyCode].elm), keyCode);
+
+			addTooltip($(elements[i].elm), letter);
 		}
+
+		elements = temp;
 	}
 
 	function getClickable(){
@@ -84,7 +91,7 @@ document.documentElement.appendChild(script);
 								&& this != window;
 						});
 		$('select,input[type="text"]').each(function(idx,val){focusable.push(val);});
-		return focusable;
+		return unique(focusable);
 	}
 	
 	function isScrolledIntoView(elem) {
