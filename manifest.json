@@ -1,0 +1,15 @@
+{
+    "name": "Key.Nav Keyboard Navigation",
+    "version": "0.0.1",
+    "manifest_version": 2,
+    "description": "Keyboard navigation for Chrome inspired by Konqueror's keyboard navigation feature.",
+    "content_scripts": [ {
+      "js": [ "lib/zepto.min.js", "key.nav.js" ],
+      "matches": [ "http://*/*", "https://*/*", "file://*/*" ],
+      "run_at": "document_start"
+   } ]//,
+   //"icons": {
+   //   "128": "icon128.png",
+   //   "48": "icon48.png"
+   //}
+}

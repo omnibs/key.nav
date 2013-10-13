@@ -34,15 +34,15 @@ var elements = []; // array of elements for each valid keyCode
 		var i = 0;
 		var offsetSkip = offset;
 		$.each(getClickable().filter(function(val){return isScrolledIntoView(val);}), function(idx, val){
-			if (offsetSkip-- > 0) return; // pulamos offset vezes
-			if (i == keyCodes.length) return; // só adicionamos a quantidade de elementos igual à quantidade de teclas de atalho
+			if (offsetSkip-- > 0) return; // skip 'offset' times
+			if (i == keyCodes.length) return; // add only as many tooltips as there are hotkeys available
 			elements.push({elm: val, type: 'click'});
 			i++;
 		});
 
 		$.each(getFocusable().filter(function(val){return isScrolledIntoView(val);}), function(idx, val){
-			if (offsetSkip-- > 0) return; // pulamos offset vezes
-			if (i == keyCodes.length) return; // só adicionamos a quantidade de elementos igual à quantidade de teclas de atalho
+			if (offsetSkip-- > 0) return; // skip 'offset' times
+			if (i == keyCodes.length) return; // add only as many tooltips as there are hotkeys available
 			elements.push({elm: val, type: 'focus'});
 			i++;
 		});
@@ -122,6 +122,7 @@ var elements = []; // array of elements for each valid keyCode
 		}
 	}
 	
+	// gotten from somewhere in stackoverflow
 	function simulatedClick(target, options) {
 		var event = target.ownerDocument.createEvent('MouseEvents'),
 			options = options || {};
