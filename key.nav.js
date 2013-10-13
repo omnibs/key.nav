@@ -16,15 +16,43 @@ var elements = []; // array of elements for each valid keyCode
 	var keymap = [];
 	var tooltipsVisible = false;
 	var offset = 0;
-
-	function addTooltip(elm, letter) {
-		var style = "position: absolute;z-index: 999999999;color: rgba(0,0,0,0.8);font-weight: bold;text-indent: 0px;background: rgba(255,255,255,0.8);"
+	
+	var tooltipStyle = "position: absolute;z-index: 999999999;color: rgba(0,0,0,0.8);font-weight: bold;text-indent: 0px;background: rgba(255,255,255,0.8);"
 					+ "float: none;width: 25px;height: 20px;border: 1px solid rgba(0,0,0,0.3);text-align: center;vertical-align: middle;"
 					+ "margin: 0px 0px 0px 0px;font-family: Arial;font-size: 14px;padding: 0px 0px 0px 0px;outline: none;";
 
-		var tooltip = $('<span style="'+style+'">'+letter+'</span>');
-		tooltip.css('top',(elm.offset().top) + 'px');
-		tooltip.css('left',(elm.offset().left) + 'px');
+	function addTooltip(elm, letter) {
+		var pos = {y: elm.offset().top, x: elm.offset().left};
+
+		// find a better way to detect occluded elements
+		// this one gets false positives for stuff like <a href=""><span>hi</span></a>
+		// elementFromPoint gives us the span, when the clickable dude is the <a>
+		if (false && document.elementFromPoint(pos.x,pos.y) != elm[0]) {
+			console.log({
+				What: 'Possibly occluded element', 
+				x: pos.x, 
+				y: pos.y, 
+				letter: letter, elm:elm
+			});
+
+			return;
+		}
+		
+		if (pos.x == 0 && pos.y == 0) {
+			console.log({
+				What: 'Possibly invisible element', 
+				x: pos.x, 
+				y: pos.y, 
+				letter: letter, elm:elm
+			});
+
+			return;
+		}
+		
+		var tooltip = $('<span style="'+tooltipStyle+'">'+letter+'</span>');
+		
+		tooltip.css('top',(pos.y) + 'px');
+		tooltip.css('left',(pos.x) + 'px');
 
 		$('body').append(tooltip);
 		tooltips.push(tooltip);
@@ -55,11 +83,11 @@ var elements = []; // array of elements for each valid keyCode
 			var keyCode = keyCodes[i];
 			temp[keyCode] = elements[i];
 			if (elements[i] == undefined){
-				console.log('['+letter+'='+keyCode+'] has no element assigned');
+				console.log('Key.Nav: ['+letter+'='+keyCode+'] has no element assigned');
 				break;
 			}
 			
-			if (letter == 'c' || letter == 'h')
+			if (typeof document.debug_keynav_letter != 'undefined' && letter == document.debug_keynav_letter)
 				console.log(elements[i]);
 
 			addTooltip($(elements[i].elm), letter);
@@ -74,21 +102,27 @@ var elements = []; // array of elements for each valid keyCode
 							// to testando ver se _handlerTypes do tests.html funciona
 							// se funcionar da pra combinar ele com .onclick != undefined ou algo assim
 							var evts = this.getAttribute('_handlerTypes');
-							return (this.onclick != undefined || (evts != undefined && evts.indexOf('click') >= 0)) && this != window && $(this).css('display') != 'none';
+							return (this.onclick != undefined || (evts != undefined && evts.indexOf('click') >= 0)) && this != window && visible(this);
 						});
 		$('input[type="submit"],input[type="file"],a[href]').each(function(idx,val) {
-			if ($(val).css('display') != 'none') clickable.push(val);
+			if (visible(val)) clickable.push(val);
 		});
 		return unique(clickable);
 	}
 	
+	// Definition of visible taken from jquery on:
+	// http://blog.jquery.com/2009/02/20/jquery-1-3-2-released/#:visible.2F:hidden_Overhauled
+	function visible(elm){
+		return elm.offsetWidth > 0 && elm.offsetHeight > 0;
+	}
+
 	function unique(array){
 		array = array.toArray != undefined ? array.toArray() : array;
 		return array.filter(function (val, idx) {
 			return array.lastIndexOf(val) === idx;
 		});
 	}
-
+	
 	function getFocusable() {
 		var focusable = $('*').filter(function(idx, val){
 							var evts = this.getAttribute('_handlerTypes');
@@ -98,7 +132,7 @@ var elements = []; // array of elements for each valid keyCode
 								//&& $(this).css('display') != 'none';
 						});
 		$('select,input[type="text"]').each(function(idx,val) {
-			if ($(val).css('display') != 'none') focusable.push(val);
+			if (visible(val)) focusable.push(val);
 		});
 		return unique(focusable);
 	}
@@ -171,7 +205,7 @@ var elements = []; // array of elements for each valid keyCode
 
 	var handler = function(e){
 		if(keymap[17] && keymap[16] && keymap[18] && (e.keyCode == 16 || e.keyCode == 17 || e.keyCode == 18) && e.type=='keyup'){
-			console.log('removeTooltips');
+			//console.log('removeTooltips');
 			removeTooltips();
 			tooltipsVisible = false;
 		}
@@ -185,7 +219,7 @@ var elements = []; // array of elements for each valid keyCode
 				if (offset < 0)
 					offset = 0;
 
-				console.log('offsetting: ' + offset);
+				//console.log('offsetting: ' + offset);
 				removeTooltips();
 				addTooltips();
 			}
@@ -195,13 +229,13 @@ var elements = []; // array of elements for each valid keyCode
 			if (!keymap[e.keyCode] && elementFromLetter != undefined) {
 				var elm = elementFromLetter;
 				if (elm.type == 'click') {
-					console.log('clicking...');
-					console.log(elm.elm);
+					//console.log('clicking...');
+					//console.log(elm.elm);
 					simulatedClick(elm.elm);
 				}
 				else if (elm.type == 'focus') {
-					console.log('focusing...');
-					console.log(elm.elm);
+					//console.log('focusing...');
+					//console.log(elm.elm);
 					elm.elm.focus();
 				}
 			}
