@@ -16,6 +16,10 @@ var elements = []; // array of elements for each valid keyCode
 	var keymap = [];
 	var tooltipsVisible = false;
 	var offset = 0;
+	// Keys mapping
+	const ALT = 18;
+	const CTRL = 17;
+	const SHIFT = 16;
 	
 	var tooltipStyle = "position: absolute;z-index: 999999999;color: rgba(0,0,0,0.8);font-weight: bold;text-indent: 0px;background: rgba(255,255,255,0.8);"
 					+ "float: none;width: 25px;height: 20px;border: 1px solid rgba(0,0,0,0.3);text-align: center;vertical-align: middle;"
@@ -204,8 +208,7 @@ var elements = []; // array of elements for each valid keyCode
 	}
 
 	var handler = function(e){
-		if(keymap[17] && keymap[16] && keymap[18] && (e.keyCode == 16 || e.keyCode == 17 || e.keyCode == 18) && e.type=='keyup'){
-			//console.log('removeTooltips');
+		if(keymap[CTRL] && keymap[SHIFT] && keymap[ALT] && (e.keyCode == SHIFT || e.keyCode == CTRL || e.keyCode == ALT) && e.type=='keyup'){
 			removeTooltips();
 			tooltipsVisible = false;
 		}
@@ -219,7 +222,6 @@ var elements = []; // array of elements for each valid keyCode
 				if (offset < 0)
 					offset = 0;
 
-				//console.log('offsetting: ' + offset);
 				removeTooltips();
 				addTooltips();
 			}
@@ -229,13 +231,9 @@ var elements = []; // array of elements for each valid keyCode
 			if (!keymap[e.keyCode] && elementFromLetter != undefined) {
 				var elm = elementFromLetter;
 				if (elm.type == 'click') {
-					//console.log('clicking...');
-					//console.log(elm.elm);
 					simulatedClick(elm.elm);
 				}
 				else if (elm.type == 'focus') {
-					//console.log('focusing...');
-					//console.log(elm.elm);
 					elm.elm.focus();
 				}
 			}
@@ -243,7 +241,15 @@ var elements = []; // array of elements for each valid keyCode
 
 		keymap[e.keyCode] = e.type == 'keydown';
 		
-		if(keymap[17] && keymap[16] && keymap[18]){
+		// when pressing alt+tab, ctrl+tab and ctrl+shift+tab, keys would remain active on the keymap
+		if (e.type == "keydown") {
+			keymap[SHIFT] = e.shiftKey;
+			keymap[CTRL] = e.ctrlKey;
+			keymap[ALT] = e.altKey;
+		}
+		
+		// if hotkey is pressed...
+		if(keymap[CTRL] && keymap[SHIFT] && keymap[ALT]){
 			if (tooltipsVisible == true)
 				return;
 			tooltipsVisible = true;
